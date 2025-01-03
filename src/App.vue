@@ -1,51 +1,63 @@
+<!-- eslint-disable prettier/prettier -->
+
 <template>
-  <div class="container" id="app">
-    <h1>IDShop</h1>
-    <!-- <p>
-      Lorem ipsum dolor sit, amet consectetur adipisicing elit. Consectetur nemo
-      officiis non consequuntur deleniti porro voluptates, neque culpa, iure
-      exercitationem ducimus itaque ipsum sint doloremque quidem ab labore,
-      explicabo nihil!
-    </p>
-    <price-component :value="4.5"></price-component> -->
-    <product-list
+  <div id="app" class="container mt-5">
+    <router-view
+      :cart="cart"
+      :cartQty="cartQty"
+      :cartTotal="cartTotal"
+      :sliderStatus="style.sliderStatus"
+      v-model:maximum="maximum"
       :products="products"
-      :maxprice="maxPrice"
+      @toggle="toggleSliderStatus"
+      @delete="deleteItem"
       @add="addItem"
-    ></product-list>
+    ></router-view>
   </div>
 </template>
+<!-- eslint-disable prettier/prettier -->
 
 <script>
-// import priceComponent from "./components/priceComponent.vue";
-import productList from "./components/productList.vue";
-
 export default {
-  name: "App",
+  name: "app",
   data: function () {
     return {
-      maxPrice: 20,
+      maximum: 50,
       products: [],
       cart: [],
+      style: {
+        sliderStatus: false,
+      },
     };
   },
-  components: {
-    // priceComponent,
-    productList,
-  },
   mounted: function () {
-    // Melakukan permintaan fetch ke API untuk mendapatkan data produk
     fetch("https://hplussport.com/api/products/order/price")
-      // Mengubah respons menjadi objek JSON
       .then((response) => response.json())
-      // Setelah data diubah menjadi JSON, simpan ke dalam 'products'
       .then((data) => {
         this.products = data;
       });
   },
+  computed: {
+    cartTotal: function () {
+      let sum = 0;
+      for (let key in this.cart) {
+        sum = sum + this.cart[key].product.price * this.cart[key].qty;
+      }
+      return sum;
+    },
+    cartQty: function () {
+      let qty = 0;
+      for (let key in this.cart) {
+        qty = qty + this.cart[key].qty;
+      }
+      return qty;
+    },
+  },
   methods: {
+    toggleSliderStatus: function () {
+      this.style.sliderStatus = !this.style.sliderStatus;
+    },
     addItem: function (product) {
-      // Menambahkan produk ke array cart
       let productIndex;
       let productExist = this.cart.filter(function (item, index) {
         if (item.product.id == Number(product.id)) {
@@ -60,6 +72,13 @@ export default {
         this.cart[productIndex].qty++;
       } else {
         this.cart.push({ product: product, qty: 1 });
+      }
+    },
+    deleteItem: function (id) {
+      if (this.cart[id].qty > 1) {
+        this.cart[id].qty--;
+      } else {
+        this.cart.splice(id, 1);
       }
     },
   },

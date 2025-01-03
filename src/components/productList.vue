@@ -1,35 +1,34 @@
 <!-- eslint-disable prettier/prettier -->
-
 <template>
   <transition-group
     name="fade"
     tag="div"
-    @before-enter="beforeEnter"
+    @beforeEnter="before"
     @enter="enter"
     @leave="leave"
   >
-    <!-- Daftar produk -->
-    <!-- Menggunakan v-for untuk iterasi produk dan v-if untuk filter harga -->
     <div
-      class="row d-none mb-3 align-items-center"
-      v-for="(item, index) in showitem"
-      :key="item.id"
+      class="row mb-3 align-items-center"
+      v-for="(item, index) in showItem"
+      :key="index"
       :data-index="index"
     >
-      <!-- Tombol untuk menambahkan item ke keranjang -->
       <div class="col-1 m-auto">
-        <button class="btn btn-info" @click="$emit('add', item)">+</button>
+        <button class="btn btn-info" @click="$parent.$emit('add', item)">
+          +
+        </button>
       </div>
-      <!-- Gambar produk -->
       <div class="col-sm-4">
-        <img class="img-fluid d-block" :src="item.image" :alt="item.name" />
+        <img :src="item.image" :alt="item.name" class="img-fluid d-block" />
       </div>
-      <!-- Informasi produk -->
       <div class="col">
         <h3 class="text-info">{{ item.name }}</h3>
         <p class="mb-0">{{ item.description }}</p>
         <div class="h5 float-right">
-          <price-component :value="Number(item.price)"></price-component>
+          <price-component
+            :value="Number(item.price)"
+            :precision="2"
+          ></price-component>
         </div>
       </div>
     </div>
@@ -45,18 +44,18 @@ export default {
   components: {
     priceComponent,
   },
-  props: ["products", "maxprice"],
+  props: ["products", "maximum"],
   computed: {
-    showitem: function () {
-      let max = this.maxprice;
+    showItem: function () {
+      let max = this.maximum;
       return this.products.filter(function (item) {
-        return item.price <= Number(max);
+        return Math.trunc(item.price) <= max; //bug fix price filter
       });
     },
   },
   methods: {
-    beforeEnter: function (el) {
-      el.className = "d - none";
+    before: function (el) {
+      el.className = "d-none";
     },
     enter: function (el) {
       var delay = el.dataset.index * 100;
